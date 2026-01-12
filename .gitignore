@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+
+# Whisper runtime artifacts
+recording.wav
+transcript.txt
+transcript_raw.txt
+
+# Whisper models & builds (submodule-generated)
+whisper.cpp/build/
+whisper.cpp/models/
+
+# Logs / temp
+*.log
+/tmp/
+
+# Personal notes
+NOTES/
