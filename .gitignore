@@ -22,6 +22,3 @@ whisper.cpp/models/
 # Logs / temp
 *.log
 /tmp/
-
-# Personal notes
-NOTES/
