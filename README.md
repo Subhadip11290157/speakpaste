@@ -96,7 +96,22 @@ Switching models requires changing one line in transcribe.sh.
 
 --------------------------------------------------
 
+🌿 Cloning
+
+This repository uses a Git submodule.
+
+Clone it using:
+
+git clone --recurse-submodules https://github.com/Subhadip11290157/speakpaste.git
+
+Or after cloning:
+
+git submodule update --init --recursive
+
+--------------------------------------------------
+
 📜 License
 
 This project is for personal use.
 Upstream dependencies (e.g. whisper.cpp) retain their respective licenses.
+
