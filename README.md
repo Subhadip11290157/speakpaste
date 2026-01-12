@@ -1,38 +1,70 @@
-# Local Whisper Dictation (macOS)
+```markdown
+# 🎙️ SpeakPaste
 
-A fully local, offline dictation system for macOS built on top of
-whisper.cpp, Python, and Hammerspoon.
+**Fully local, offline voice dictation for macOS — powered by Whisper.**
 
-This project provides a global hotkey–based speech-to-text workflow that:
-- records audio locally
-- transcribes it using OpenAI Whisper (via whisper.cpp)
-- cleans filler words deterministically
-- pastes the final text at the cursor
-- runs fully offline
-- auto-starts at login using launchd
+SpeakPaste lets you press a hotkey, speak naturally, and have your words
+**transcribed and pasted directly at the cursor**, anywhere on your Mac.
 
-Designed for developers who want to think out loud, explain problems,
-and write natural technical prose without relying on cloud services.
+No cloud.  
+No accounts.  
+No telemetry.  
+No background UI.
 
---------------------------------------------------
-
-✨ Features
-
-- ⌨ Global hotkey toggle (⌃⌥D)
-- 🎙 Start / stop dictation anywhere (browser, IDE, Slack, Notes)
-- 🧠 Local Whisper inference (Metal-accelerated)
-- 🧹 Deterministic text cleanup (no AI rewriting)
-- 📋 Auto-paste at cursor
-- 🚀 Auto-starts in background at login
-- 🔒 No cloud, no telemetry, no vendor lock-in
+Designed for developers and thinkers who like to **think out loud** and
+write natural prose without relying on cloud services.
 
 --------------------------------------------------
 
-🏗 Architecture Overview
+## ✨ What SpeakPaste Does
 
-Hammerspoon (hotkey)
+- ⌨ Global hotkey toggle (**⌃⌥D**)
+- 🎙 Start / stop dictation anywhere (IDE, browser, Notes, chat apps)
+- 🧠 Local Whisper inference (via `whisper.cpp`, Metal-accelerated)
+- 🧹 Deterministic text cleanup (regex-based, no AI rewriting)
+- 📋 Automatically pastes text at the cursor
+- 🚀 Runs silently in the background, auto-starts at login
+- 🔒 100% offline — no audio or text leaves your machine
+
+--------------------------------------------------
+
+## 🚀 Quick Usage
+
+1. Place the cursor in any text field
+2. Press **⌃⌥D** → start speaking
+3. Press **⌃⌥D** again → stop
+4. Transcribed text appears at the cursor
+
+If you forget it exists, it’s working exactly as intended.
+
+--------------------------------------------------
+
+## 🧠 How It Works (High-Level)
+
+SpeakPaste is intentionally built from small, reliable components:
+
+Hammerspoon  
+→ captures the global hotkey and pastes text
+
+Recorder daemon (Python + launchd)  
+→ records audio in the background
+
+`whisper.cpp`  
+→ performs fully local Whisper transcription
+
+Shell pipeline  
+→ cleans text deterministically and copies to clipboard
+
+Each component is simple, explicit, and replaceable.
+
+--------------------------------------------------
+
+## 🏗 Architecture Overview
+
+```
+Hotkey (Hammerspoon)
         ↓
-Python recorder daemon (audio capture)
+Recorder daemon (Python, launchd)
         ↓
 recording.wav
         ↓
@@ -40,78 +72,123 @@ whisper.cpp (whisper-cli)
         ↓
 raw transcript
         ↓
-clean_text.py (regex-based cleanup)
+clean_text.py (regex cleanup)
         ↓
 clipboard → paste at cursor
-
-Each component is deliberately simple and replaceable.
-
---------------------------------------------------
-
-🧩 Components
-
-Hammerspoon
-- Global hotkey
-- Start/stop orchestration
-- Paste-at-cursor
-
-Python
-- Audio recording daemon
-- Deterministic regex-based text cleanup
-
-whisper.cpp
-- Local Whisper inference
-- Metal + Accelerate backends
-- English-only models
+```
 
 --------------------------------------------------
 
-🚀 Usage
+## 🧠 Model Choice
 
-1. Log into macOS (daemon starts automatically)
-2. Place cursor in any text field
-3. Press ⌃⌥D → speak
-4. Press ⌃⌥D → stop
-5. Text appears at the cursor
-
---------------------------------------------------
-
-🧠 Model Choice
-
-Default model: ggml-small.en.bin
+**Default model:** `ggml-small.en.bin`
 
 Why:
-- Noticeably higher accuracy than base.en
+- Noticeably higher accuracy than `base.en`
 - Still fast enough for interactive dictation on Apple Silicon
 
-Switching models requires changing one line in transcribe.sh.
+Switching models requires changing **one line** in `transcribe.sh`.
 
 --------------------------------------------------
 
-🔒 Privacy
+## 🔒 Privacy
 
-- 100% offline
+- All processing is local
 - No network calls after model download
-- No audio or text leaves the machine
+- No telemetry, analytics, or vendor lock-in
+
+Your voice never leaves your Mac.
 
 --------------------------------------------------
 
-🌿 Cloning
+## 🌿 Installation
 
-This repository uses a Git submodule.
+This repository uses a **Git submodule** for `whisper.cpp`.
 
-Clone it using:
+Clone with:
 
-git clone --recurse-submodules https://github.com/Subhadip11290157/speakpaste.git
+```bash
+git clone --recurse-submodules https://github.com/<your-username>/speakpaste.git
+cd speakpaste
+```
 
-Or after cloning:
+Then run:
 
-git submodule update --init --recursive
+```bash
+./setup.sh
+```
+
+The setup script:
+- installs required system tools (Homebrew, make, cmake, Hammerspoon)
+- creates a Python virtual environment
+- builds `whisper.cpp` if needed
+- installs a background recorder daemon
+- safely composes Hammerspoon configuration
 
 --------------------------------------------------
 
-📜 License
+## ⚠️ Required macOS Permissions (MANDATORY)
+
+Due to macOS security, a few one-time manual steps are required.
+
+You **must** complete them for the hotkey to work.
+
+➡️ **Read:** `CONDITIONS.md`
+
+Summary:
+- Accessibility → Hammerspoon
+- Input Monitoring → Hammerspoon
+- Microphone → Terminal / Python
+- Hammerspoon → Open at Login
+- Reload Hammerspoon config once
+
+If any step is skipped, ⌃⌥D may appear to do nothing.
+This is macOS security working as designed.
+
+--------------------------------------------------
+
+## 📘 Documentation Index
+
+For details beyond this README:
+
+- **SETUP.md**  
+  What `setup.sh` does, step by step
+
+- **DEV_GUIDE.md**  
+  Debugging, rebuilding, internals, common failure modes
+
+- **CONDITIONS.md**  
+  macOS permissions and background behavior explained clearly
+
+--------------------------------------------------
+
+## 🎯 Design Philosophy
+
+- Offline by default
+- Deterministic behavior
+- No hidden state
+- No cloud dependency
+- Simple pieces over monoliths
+
+SpeakPaste prefers being **boringly reliable** over being clever.
+
+--------------------------------------------------
+
+## 📜 License
 
 This project is for personal use.
-Upstream dependencies (e.g. whisper.cpp) retain their respective licenses.
 
+Upstream dependencies (e.g. `whisper.cpp`) retain their respective licenses.
+
+--------------------------------------------------
+
+## 🧠 Final Note
+
+If SpeakPaste quietly does its job,  
+never interrupts your flow,  
+and slowly fades into muscle memory —
+
+that is not an accident.
+
+That is the goal.
+```
