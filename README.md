@@ -1,4 +1,3 @@
-```markdown
 # 🎙️ SpeakPaste
 
 **Fully local, offline voice dictation for macOS — powered by Whisper.**
