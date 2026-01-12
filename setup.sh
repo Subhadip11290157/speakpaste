@@ -10,7 +10,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "✔ Repo root: $REPO_ROOT"
 
 # --------------------------------------------------
-# 0. Prerequisites: Homebrew, build tools, Hammerspoon
+# 0. Prerequisites: Homebrew, build tools, Hammerspoon, Python
 # --------------------------------------------------
 echo "▶ Checking system prerequisites"
 
@@ -23,7 +23,7 @@ else
   echo "✔ Homebrew already installed"
 fi
 
-# Ensure brew is available in this shell (Apple Silicon)
+# Ensure brew available (Apple Silicon)
 if [ -x /opt/homebrew/bin/brew ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
@@ -31,7 +31,14 @@ fi
 # Build tools
 echo "▶ Ensuring build tools (make, cmake)"
 brew install make cmake || true
-echo "✔ Build tools ready"
+
+# Python
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "▶ python3 not found — installing via Homebrew"
+  brew install python
+fi
+
+echo "✔ System tools ready"
 
 # Hammerspoon
 echo "▶ Ensuring Hammerspoon is installed"
@@ -47,6 +54,10 @@ PIP="$VENV_DIR/bin/pip"
 
 SPEAKPASTE_LUA="$REPO_ROOT/hammerspoon/speakpaste.lua"
 DAEMON_PY="$REPO_ROOT/recorder_daemon.py"
+
+WHISPER_CPP_DIR="$REPO_ROOT/whisper.cpp"
+WHISPER_BIN="$WHISPER_CPP_DIR/build/bin/whisper-cli"
+
 LAUNCHD_PLIST="$HOME/Library/LaunchAgents/com.local.speakpaste.recorder.plist"
 
 # --------------------------------------------------
@@ -55,20 +66,47 @@ LAUNCHD_PLIST="$HOME/Library/LaunchAgents/com.local.speakpaste.recorder.plist"
 echo "▶ Setting up Python virtual environment"
 
 if [ ! -d "$VENV_DIR" ]; then
-  echo "✔ Creating venv"
   python3 -m venv "$VENV_DIR"
+  echo "✔ venv created"
 else
   echo "✔ venv already exists"
 fi
 
-echo "✔ Installing Python dependencies"
+echo "▶ Installing Python dependencies"
 "$PIP" install --upgrade pip
 "$PIP" install sounddevice soundfile numpy pynput
+echo "✔ Python dependencies installed"
 
 # --------------------------------------------------
-# 2. Install launchd daemon
+# 2. Build whisper.cpp if needed
+# --------------------------------------------------
+echo "▶ Ensuring whisper.cpp is built"
+
+if [ ! -d "$WHISPER_CPP_DIR" ]; then
+  echo "❌ whisper.cpp submodule not found. Did you clone with --recurse-submodules?"
+  exit 1
+fi
+
+if [ ! -x "$WHISPER_BIN" ]; then
+  echo "▶ whisper-cli not found — building whisper.cpp"
+  cd "$WHISPER_CPP_DIR"
+  make
+  echo "✔ whisper.cpp built"
+else
+  echo "✔ whisper.cpp already built"
+fi
+
+cd "$REPO_ROOT"
+
+# --------------------------------------------------
+# 3. Install launchd recorder daemon
 # --------------------------------------------------
 echo "▶ Installing recorder daemon (launchd)"
+
+if [ ! -f "$DAEMON_PY" ]; then
+  echo "❌ recorder_daemon.py not found at $DAEMON_PY"
+  exit 1
+fi
 
 cat > "$LAUNCHD_PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -106,9 +144,14 @@ launchctl load "$LAUNCHD_PLIST"
 echo "✔ Recorder daemon installed and started"
 
 # --------------------------------------------------
-# 3. Hammerspoon config injection (composition)
+# 4. Configure Hammerspoon (composition)
 # --------------------------------------------------
 echo "▶ Configuring Hammerspoon"
+
+if [ ! -f "$SPEAKPASTE_LUA" ]; then
+  echo "❌ speakpaste.lua not found at $SPEAKPASTE_LUA"
+  exit 1
+fi
 
 HAMMER_DIR="$HOME/.hammerspoon"
 HAMMER_INIT="$HAMMER_DIR/init.lua"
@@ -134,18 +177,18 @@ else
 fi
 
 # --------------------------------------------------
-# 4. Final guidance
+# 5. Final guidance
 # --------------------------------------------------
 echo ""
-echo "✅ Automated setup complete"
+echo "✅ SpeakPaste setup complete"
 echo ""
-echo "MANUAL STEPS REQUIRED (macOS security):"
+echo "MANUAL ONE-TIME STEPS (required by macOS):"
 echo "  1. Open Hammerspoon → Reload Config"
 echo "  2. System Settings → Privacy & Security:"
 echo "     - Accessibility → enable Hammerspoon"
 echo "     - Input Monitoring → enable Hammerspoon"
-echo "     - Microphone → enable Terminal/Python"
+echo "     - Microphone → enable Terminal / Python"
 echo "  3. System Settings → Login Items:"
-echo "     - Ensure Hammerspoon.app is set to Open at Login"
+echo "     - Set Hammerspoon.app to Open at Login"
 echo ""
-echo "Then press ⌃⌥D anywhere to Speak & Paste."
+echo "After this, press ⌃⌥D anywhere to Speak & Paste."
