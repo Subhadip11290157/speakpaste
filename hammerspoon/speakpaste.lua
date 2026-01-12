@@ -1,6 +1,15 @@
 recording = false
 cmdFile = "/tmp/recorder.cmd"
 
+-- --------------------------------------------------
+-- Resolve project root dynamically (NO hardcoding)
+-- --------------------------------------------------
+local info = debug.getinfo(1, "S")
+local thisFile = info.source:sub(2)
+-- thisFile = /path/to/speakpaste/hammerspoon/speakpaste.lua
+local projectDir = thisFile:match("(.*/)[^/]+$"):gsub("/hammerspoon/$", "")
+local transcribeScript = projectDir .. "/transcribe.sh"
+
 hs.hotkey.bind({"ctrl", "alt"}, "D", function()
     if not recording then
         recording = true
@@ -11,15 +20,17 @@ hs.hotkey.bind({"ctrl", "alt"}, "D", function()
         hs.alert.show("🧠 Transcribing")
         hs.execute("echo STOP > " .. cmdFile)
 
-        -- run whisper asynchronously
+        -- run whisper asynchronously (guarded, deterministic)
         hs.task.new(
-            "/Users/subhadir/speakpaste/transcribe.sh",
+            "/bin/bash",
             function(exitCode, stdout, stderr)
-                -- small delay to ensure clipboard is ready
-                hs.timer.doAfter(0.1, function()
+                if exitCode == 0 then
                     hs.eventtap.keyStroke({"cmd"}, "v")
-                end)
-            end
+                else
+                    hs.alert.show("❌ Transcription failed")
+                end
+            end,
+            { "-lc", transcribeScript }
         ):start()
     end
 end)
