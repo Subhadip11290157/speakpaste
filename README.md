@@ -185,9 +185,7 @@ Upstream dependencies (e.g. `whisper.cpp`) retain their respective licenses.
 
 If SpeakPaste quietly does its job,  
 never interrupts your flow,  
-and slowly fades into muscle memory —
-
-that is not an accident.
+and slowly fades into muscle memory — that is not an accident.
 
 That is the goal.
 ```
