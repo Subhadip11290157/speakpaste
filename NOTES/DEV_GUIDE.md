@@ -7,6 +7,7 @@ and architectural knowledge for SpeakPaste.
 
 ## Project Structure
 
+```text
 speakpaste/
 ├── setup.sh
 ├── recorder_daemon.py
@@ -20,6 +21,7 @@ speakpaste/
 ├── hammerspoon/
 │   └── speakpaste.lua
 └── venv/
+```
 
 --------------------------------------------------
 
