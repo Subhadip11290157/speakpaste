@@ -41,7 +41,7 @@ def handle_stop():
         return
 
     audio = np.concatenate(frames, axis=0)
-    tmp_file = RECORDING_WAV + ".tmp"
+    tmp_file = RECORDING_WAV.with_name(RECORDING_WAV.stem + ".tmp.wav")
 
     sf.write(tmp_file, audio, SAMPLE_RATE)
     os.replace(tmp_file, RECORDING_WAV)
