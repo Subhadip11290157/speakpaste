@@ -74,6 +74,32 @@ rm ~/Library/LaunchAgents/com.local.speakpaste.recorder.plist
 
 --------------------------------------------------
 
+## IMPORTANT — Updating recorder_daemon.py (READ THIS)
+
+launchd does NOT automatically reload Python code when files change.
+
+If you edit `recorder_daemon.py` and do NOT reload the launchd agent:
+
+- The old Python process keeps running
+- Your changes will NOT take effect
+- You may see stale logs or old behavior
+- It can appear as if changes “apply one run later”
+
+This is expected macOS behavior — not a bug.
+
+After ANY change to `recorder_daemon.py`, you MUST run:
+
+launchctl unload ~/Library/LaunchAgents/com.local.speakpaste.recorder.plist
+launchctl load ~/Library/LaunchAgents/com.local.speakpaste.recorder.plist
+
+Only then will launchd restart the daemon with the updated code.
+
+Tip:
+If debugging rapidly, stop launchd entirely and run the daemon manually
+until stable, then re-enable launchd.
+
+--------------------------------------------------
+
 ## launchd Logs
 
 Stdout:
