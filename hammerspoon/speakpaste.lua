@@ -10,7 +10,10 @@ local thisFile = info.source:sub(2)
 local projectDir = thisFile:match("(.*/)[^/]+$"):gsub("/hammerspoon/$", "")
 local transcribeScript = projectDir .. "/transcribe.sh"
 
-hs.hotkey.bind({"ctrl", "alt"}, "D", function()
+-- --------------------------------------------------
+-- Core toggle logic (shared by ALL triggers)
+-- --------------------------------------------------
+local function toggleDictation()
     if not recording then
         recording = true
         hs.alert.show("🎙️ Recording")
@@ -33,4 +36,40 @@ hs.hotkey.bind({"ctrl", "alt"}, "D", function()
             { "-lc", transcribeScript }
         ):start()
     end
-end)
+end
+
+-- --------------------------------------------------
+-- Existing hotkey (UNCHANGED)
+-- --------------------------------------------------
+hs.hotkey.bind({"ctrl", "alt"}, "D", toggleDictation)
+
+-- --------------------------------------------------
+-- Double-tap Option trigger (flagsChanged-based)
+-- --------------------------------------------------
+local lastOptionTap = 0
+local DOUBLE_TAP_THRESHOLD = 0.4
+
+local optionTapper = hs.eventtap.new(
+    { hs.eventtap.event.types.flagsChanged },
+    function(event)
+        local flags = event:getFlags()
+
+        -- Option pressed alone (no other modifiers)
+        if flags.alt and not (flags.cmd or flags.ctrl or flags.shift) then
+            local now = hs.timer.secondsSinceEpoch()
+
+            if (now - lastOptionTap) <= DOUBLE_TAP_THRESHOLD then
+                lastOptionTap = 0
+                toggleDictation()
+            else
+                lastOptionTap = now
+            end
+        end
+
+        return false
+    end
+)
+
+optionTapper:start()
+
+
