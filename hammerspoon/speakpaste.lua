@@ -43,33 +43,33 @@ end
 -- --------------------------------------------------
 hs.hotkey.bind({"ctrl", "alt"}, "D", toggleDictation)
 
--- --------------------------------------------------
--- Double-tap Option trigger (flagsChanged-based)
--- --------------------------------------------------
-local lastOptionTap = 0
-local DOUBLE_TAP_THRESHOLD = 0.4
+-- -- --------------------------------------------------
+-- -- Double-tap Option trigger (flagsChanged-based)
+-- -- --------------------------------------------------
+-- local lastOptionTap = 0
+-- local DOUBLE_TAP_THRESHOLD = 0.4
 
-local optionTapper = hs.eventtap.new(
-    { hs.eventtap.event.types.flagsChanged },
-    function(event)
-        local flags = event:getFlags()
+-- local optionTapper = hs.eventtap.new(
+--     { hs.eventtap.event.types.flagsChanged },
+--     function(event)
+--         local flags = event:getFlags()
 
-        -- Option pressed alone (no other modifiers)
-        if flags.alt and not (flags.cmd or flags.ctrl or flags.shift) then
-            local now = hs.timer.secondsSinceEpoch()
+--         -- Option pressed alone (no other modifiers)
+--         if flags.alt and not (flags.cmd or flags.ctrl or flags.shift) then
+--             local now = hs.timer.secondsSinceEpoch()
 
-            if (now - lastOptionTap) <= DOUBLE_TAP_THRESHOLD then
-                lastOptionTap = 0
-                toggleDictation()
-            else
-                lastOptionTap = now
-            end
-        end
+--             if (now - lastOptionTap) <= DOUBLE_TAP_THRESHOLD then
+--                 lastOptionTap = 0
+--                 toggleDictation()
+--             else
+--                 lastOptionTap = now
+--             end
+--         end
 
-        return false
-    end
-)
+--         return false
+--     end
+-- )
 
-optionTapper:start()
+-- optionTapper:start()
 
 
